@@ -61,15 +61,25 @@ def trigger_webhook():
             print("-> Fehler: Kein 'issue'-Parameter in der Anfrage gefunden.")
             return "Kein Issue im Request gefunden. Bitte ?issue=xxx an die URL anhängen.", 400
 
+        # Optional: Hänge den Issue-Parameter direkt als Query-Parameter an die Jira URL an,
+        # da manche Webhooks das Ticket eher in der URL erwarten als im JSON Body.
+        # target_url = f"{JIRA_WEBHOOK_URL}?issue={issue}"
+        target_url = JIRA_WEBHOOK_URL
+
         # Sende immer einen POST-Request an den Jira Webhook
-        print(f"-> Sende HTTP POST an Jira Webhook...")
+        print(f"-> Sende HTTP POST an Jira Webhook: {target_url}")
         
+        import warnings
+        from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        warnings.simplefilter('ignore', InsecureRequestWarning)
+
         # Falls es in firmeninternen Netzwerken zu SSL-Zertifikatfehlern kommt,
         # kann hier verify=False übergeben werden. Andernfalls verify=True.
         # Es wird empfohlen, verify=True für Produktivsysteme beizubehalten, 
         # außer es lässt sich lokal nicht anders lösen.
-        response = requests.post(JIRA_WEBHOOK_URL, json=payload, verify=False)
+        response = requests.post(target_url, json=payload, verify=False)
         print(f"-> Antwort von Jira: Status {response.status_code}")
+        print(f"-> Jira Response Text: {response.text}")
         print("------------------------------------------\n")
         
         # Prüfen, ob Jira den Request erfolgreich angenommen hat
