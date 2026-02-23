@@ -35,16 +35,20 @@ def trigger_webhook():
     
     try:
         # Abhängig vom Request-Typ (GET oder POST) die Parameter extrahieren
+        # und sicherstellen, dass die Payload immer '{"issue": "xxx"}' sendet
+        issue = None
         if request.method == 'POST':
             if request.is_json:
-                payload = request.get_json()
+                issue = request.get_json().get('issue')
             else:
-                payload = request.form.to_dict()
+                issue = request.form.get('issue')
         elif request.method == 'GET':
-            payload = request.args.to_dict()
+            issue = request.args.get('issue')
             
-        # Optional: Hier können feste Werte ergänzt werden, die Jira erwartet
-        # payload['custom_field'] = 'Wert aus E-Mail'
+        if issue:
+            payload = {"issue": issue}
+        else:
+            return "Kein Issue im Request gefunden. Bitte ?issue=xxx an die URL anhängen.", 400
 
         # Sende den POST-Request an den Jira Webhook
         print(f"Sende Payload an Jira: {payload}")
