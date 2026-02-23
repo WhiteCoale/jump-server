@@ -37,27 +37,40 @@ def trigger_webhook():
         # Abhängig vom Request-Typ (GET oder POST) die Parameter extrahieren
         # und sicherstellen, dass die Payload immer '{"issue": "xxx"}' sendet
         issue = None
+        kommende_parameter = {}
+        
         if request.method == 'POST':
             if request.is_json:
-                issue = request.get_json().get('issue')
+                kommende_parameter = request.get_json()
+                issue = kommende_parameter.get('issue')
             else:
-                issue = request.form.get('issue')
+                kommende_parameter = request.form.to_dict()
+                issue = kommende_parameter.get('issue')
         elif request.method == 'GET':
-            issue = request.args.get('issue')
+            kommende_parameter = request.args.to_dict()
+            issue = kommende_parameter.get('issue')
             
+        print(f"--- NEUER {request.method}-REQUEST ERHALTEN ---")
+        print(f"Aufgerufene URL: {request.url}")
+        print(f"Erhaltene Parameter: {kommende_parameter}")
+        
         if issue:
             payload = {"issue": issue}
+            print(f"-> Erstellte POST-Payload für Jira: {payload}")
         else:
+            print("-> Fehler: Kein 'issue'-Parameter in der Anfrage gefunden.")
             return "Kein Issue im Request gefunden. Bitte ?issue=xxx an die URL anhängen.", 400
 
-        # Sende den POST-Request an den Jira Webhook
-        print(f"Sende Payload an Jira: {payload}")
+        # Sende immer einen POST-Request an den Jira Webhook
+        print(f"-> Sende HTTP POST an Jira Webhook...")
         
         # Falls es in firmeninternen Netzwerken zu SSL-Zertifikatfehlern kommt,
         # kann hier verify=False übergeben werden. Andernfalls verify=True.
         # Es wird empfohlen, verify=True für Produktivsysteme beizubehalten, 
         # außer es lässt sich lokal nicht anders lösen.
         response = requests.post(JIRA_WEBHOOK_URL, json=payload, verify=False)
+        print(f"-> Antwort von Jira: Status {response.status_code}")
+        print("------------------------------------------\n")
         
         # Prüfen, ob Jira den Request erfolgreich angenommen hat
         if response.status_code in [200, 201, 202, 204]:
