@@ -55,7 +55,7 @@ def trigger_webhook():
         print(f"Erhaltene Parameter: {kommende_parameter}")
         
         if issue:
-            payload = {"issue": issue}
+            payload = {"issues": [issue]}
             print(f"-> Erstellte POST-Payload für Jira: {payload}")
         else:
             print("-> Fehler: Kein 'issue'-Parameter in der Anfrage gefunden.")
@@ -64,7 +64,7 @@ def trigger_webhook():
         # Optional: Hänge den Issue-Parameter direkt als Query-Parameter an die Jira URL an,
         # da manche Webhooks das Ticket eher in der URL erwarten als im JSON Body.
         # target_url = f"{JIRA_WEBHOOK_URL}?issue={issue}"
-        target_url = JIRA_WEBHOOK_URL
+        target_url = f"{JIRA_WEBHOOK_URL}?issue={issue}"
 
         # Sende immer einen POST-Request an den Jira Webhook
         print(f"-> Sende HTTP POST an Jira Webhook: {target_url}")
