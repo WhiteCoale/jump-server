@@ -48,7 +48,12 @@ def trigger_webhook():
 
         # Sende den POST-Request an den Jira Webhook
         print(f"Sende Payload an Jira: {payload}")
-        response = requests.post(JIRA_WEBHOOK_URL, json=payload)
+        
+        # Falls es in firmeninternen Netzwerken zu SSL-Zertifikatfehlern kommt,
+        # kann hier verify=False übergeben werden. Andernfalls verify=True.
+        # Es wird empfohlen, verify=True für Produktivsysteme beizubehalten, 
+        # außer es lässt sich lokal nicht anders lösen.
+        response = requests.post(JIRA_WEBHOOK_URL, json=payload, verify=False)
         
         # Prüfen, ob Jira den Request erfolgreich angenommen hat
         if response.status_code in [200, 201, 202, 204]:
